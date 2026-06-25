@@ -31,7 +31,7 @@ export default function ResidentsList() {
   // Fetch residents when filters or page changes
   useEffect(() => {
     fetchResidents({ page, search, purok, status })
-  }, [fetchResidents, page, status, purok])
+  }, [fetchResidents, page, status, purok, search])
 
   // Trigger search on debounce or manual input
   const handleSearchChange = (e) => {
@@ -115,7 +115,7 @@ export default function ResidentsList() {
               placeholder="Search by resident name..."
               value={search}
               onChange={handleSearchChange}
-              className="input pl-10"
+              className="input pl-10!"
             />
           </div>
 

@@ -13,13 +13,13 @@
         .border-container {
             border: 4px double #334155;
             padding: 25px;
-            height: 94%;
+            height: 90%;
         }
         .header {
             text-align: center;
             border-bottom: 2px solid #475569;
             padding-bottom: 12px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         .header h3 {
             margin: 0;
@@ -120,8 +120,8 @@
         <!-- Header -->
         <div class="header">
             <h3>Republic of the Philippines</h3>
-            <h3>Province of Sample</h3>
-            <h2>MUNICIPALITY OF SAMPLE</h2>
+            <h3>National Capital Region</h3>
+            <h2>QUEZON CITY</h2>
             <h1>BARANGAY <?php echo htmlspecialchars($barangay_name); ?></h1>
             <div style="font-size: 11px; color: #64748b; margin-top: 5px;">
                 <?php echo htmlspecialchars($barangay_address); ?> | Tel: <?php echo htmlspecialchars($barangay_contact); ?>

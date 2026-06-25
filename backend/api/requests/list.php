@@ -33,6 +33,7 @@ $offset = ($page - 1) * $limit;
 $status = isset($_GET['status']) ? trim($_GET['status']) : 'all';
 $type = isset($_GET['type']) ? (int)$_GET['type'] : 0;
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$residentId = isset($_GET['resident_id']) ? (int)$_GET['resident_id'] : 0;
 
 try {
     $pdo = getDBConnection();
@@ -40,6 +41,11 @@ try {
     // Build conditions
     $conditions = [];
     $params = [];
+
+    if ($residentId > 0) {
+        $conditions[] = 'dr.resident_id = ?';
+        $params[] = $residentId;
+    }
 
     if ($status !== 'all') {
         $conditions[] = 'dr.status = ?';

@@ -184,7 +184,7 @@ export default function ResidentDashboard() {
           <div className="card p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-950 dark:text-white">Recent Notices</h3>
-              <Link to="/announcements" className="text-xs font-semibold text-accent-600 hover:underline">
+              <Link to="/resident/announcements" className="text-xs font-semibold text-accent-600 hover:underline">
                 All
               </Link>
             </div>
@@ -198,17 +198,17 @@ export default function ResidentDashboard() {
                 No recent announcements.
               </div>
             ) : (
-              <div className="space-y-4 divide-y divide-slate-100 dark:divide-slate-850">
+              <div className="space-y-4 divide-y divide-slate-100 dark:divide-slate-800/40">
                 {announcements.map((ann, i) => (
                   <div key={ann.id} className={`${i > 0 ? 'pt-4' : ''} space-y-2`}>
                     <div className="flex items-center justify-between text-[10px] font-semibold text-slate-400">
-                      <span className="uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-50 dark:bg-navy-900">
+                      <span className="uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-50 dark:bg-slate-800">
                         {ann.category}
                       </span>
                       <span>{formatDate(ann.created_at)}</span>
                     </div>
                     <h4 className="font-bold text-sm text-slate-950 dark:text-white hover:text-accent-600 transition-colors">
-                      <Link to={`/announcements/${ann.id}`}>{ann.title}</Link>
+                      <Link to={`/resident/announcements/${ann.id}`}>{ann.title}</Link>
                     </h4>
                     <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
                       {ann.body}

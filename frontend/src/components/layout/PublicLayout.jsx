@@ -4,19 +4,14 @@ import ThemeToggle from '../ui/ThemeToggle'
 export default function PublicLayout() {
   const location = useLocation()
 
-  const navLinks = [
-    { label: 'Home', path: '/' },
-    { label: 'Documents', path: '/announcements' },
-  ]
+  const navLinks = []
 
   return (
     <div className="flex min-h-screen flex-col bg-white transition-colors dark:bg-navy-950">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent-700 dark:bg-accent-600">
-              <span className="text-xs font-bold text-white">B</span>
-            </div>
+            <img src="/images/logo-light.png" alt="Logo" className="h-8 w-8 object-contain" />
             <div>
               <span className="block text-sm font-semibold leading-tight text-slate-950 dark:text-white">Barangay Baesa</span>
               <span className="block text-[11px] font-medium leading-tight text-slate-500 dark:text-slate-400">Baesys Portal</span>
@@ -64,9 +59,7 @@ export default function PublicLayout() {
           <div className="grid gap-8 md:grid-cols-[1.2fr_0.8fr_1fr]">
             <div>
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-accent-700">
-                  <span className="text-xs font-bold">B</span>
-                </div>
+                <img src="/images/logo-light.png" alt="Logo" className="h-8 w-8 object-contain" />
                 <div>
                   <p className="text-sm font-semibold text-white">Barangay Baesa</p>
                   <p className="text-[11px] font-medium text-slate-400">Baesys Digital Portal</p>
@@ -90,9 +83,9 @@ export default function PublicLayout() {
             <div>
               <p className="text-sm font-semibold text-white">Contact</p>
               <ul className="mt-4 space-y-2 text-sm leading-6 text-slate-400">
-                <li>Barangay Baesa Hall, Quezon City, Metro Manila</li>
-                <li>(02) 8123-4567</li>
-                <li>barangaybaesa@quezoncity.gov.ph</li>
+                <li>22 Saklolo St., Manotoc Subdivision, Brgy. Baesa, Quezon City</li>
+                <li>7-3393-122 / 0962-715-0979</li>
+                <li>baesajuan4all@gmail.com</li>
               </ul>
             </div>
           </div>

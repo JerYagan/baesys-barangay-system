@@ -16,6 +16,10 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
+      '/backend': {
+        target: 'http://localhost/baesys',
+        changeOrigin: true,
+      },
     },
   },
 })

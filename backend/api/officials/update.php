@@ -46,11 +46,17 @@ try {
 
     $photoPath = $official['photo_path'];
 
-    // Handle photo file upload
     if (!empty($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
         $file = $_FILES['photo'];
         $tmpName = $file['tmp_name'];
         $name = basename($file['name']);
+
+        // Enforce max 5MB size limit
+        if ($file['size'] > 5 * 1024 * 1024) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Photo size exceeds the limit of 5MB.']);
+            exit;
+        }
         
         // Validate MIME type
         $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];

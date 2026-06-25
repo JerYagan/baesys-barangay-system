@@ -8,7 +8,7 @@ import Spinner from '../../../components/ui/Spinner'
 export default function NewRequest() {
   const navigate = useNavigate()
   const { success: showSuccess, error: showError } = useNotifStore()
-  
+
   const [docTypes, setDocTypes] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -66,7 +66,7 @@ export default function NewRequest() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 py-6">
+    <div className="mx-auto space-y-6 py-6">
       {/* Title */}
       <div>
         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Document Services</p>
@@ -85,18 +85,16 @@ export default function NewRequest() {
           const isCompleted = step > item.stepNum
           return (
             <div key={item.stepNum} className="flex items-center space-x-2">
-              <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
-                isActive 
-                  ? 'bg-accent-600 text-white' 
-                  : isCompleted 
-                    ? 'bg-emerald-600 text-white' 
+              <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${isActive
+                  ? 'bg-accent-600 text-white'
+                  : isCompleted
+                    ? 'bg-emerald-600 text-white'
                     : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-              }`}>
+                }`}>
                 {isCompleted ? '✓' : item.stepNum}
               </span>
-              <span className={`text-xs font-semibold ${
-                isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400'
-              }`}>
+              <span className={`text-xs font-semibold ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400'
+                }`}>
                 {item.label}
               </span>
               {item.stepNum < 3 && <span className="text-slate-300 dark:text-slate-800 font-normal">➔</span>}
@@ -117,14 +115,20 @@ export default function NewRequest() {
                   <div
                     key={type.id}
                     onClick={() => setSelectedType(type)}
-                    className={`card p-5 cursor-pointer transition-all border flex flex-col justify-between ${
-                      isSelected
-                        ? 'border-accent-500 ring-2 ring-accent-500/20 bg-accent-50/10'
+                    className={`card p-5 cursor-pointer transition-all border flex flex-col justify-between relative ${isSelected
+                        ? 'border-accent-600 ring-2 ring-accent-600/30 bg-accent-50/30 dark:bg-accent-950/30 dark:border-accent-500'
                         : 'hover:border-slate-350 dark:hover:border-slate-700'
-                    }`}
+                      }`}
                   >
+                    {isSelected && (
+                      <div className="absolute top-4 right-4 text-accent-600 dark:text-accent-400">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l5-5z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
                     <div>
-                      <h4 className="font-bold text-sm text-slate-900 dark:text-white">{type.name}</h4>
+                      <h4 className={`font-bold text-sm pr-6 transition-colors ${isSelected ? 'text-accent-700 dark:text-accent-400' : 'text-slate-900 dark:text-white'}`}>{type.name}</h4>
                       <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-3">
                         {type.description}
                       </p>
@@ -139,7 +143,7 @@ export default function NewRequest() {
                 )
               })}
             </div>
-            
+
             <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
               <button
                 onClick={() => setStep(2)}
@@ -156,7 +160,7 @@ export default function NewRequest() {
           <div className="space-y-4">
             <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Step 2: Specify Purpose</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">Please provide a clear and specific purpose for requesting your <strong>{selectedType?.name}</strong>. This details the legal basis or transaction use for the certificate.</p>
-            
+
             <div className="pt-2">
               <label className="label">Purpose / Intended Use</label>
               <textarea
@@ -190,7 +194,7 @@ export default function NewRequest() {
         {step === 3 && (
           <div className="space-y-6">
             <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Step 3: Review and Confirm</h3>
-            
+
             <div className="bg-slate-50 dark:bg-navy-900/50 border border-slate-100 dark:border-slate-800 rounded-lg p-5 divide-y divide-slate-100 dark:divide-slate-800/80">
               <div className="pb-3 flex justify-between">
                 <span className="text-xs font-medium text-slate-400">Document Type</span>

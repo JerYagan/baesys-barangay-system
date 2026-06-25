@@ -7,6 +7,7 @@ import { useNotifStore } from '../../../store/useNotifStore'
 import ConfirmDialog from '../../../components/ui/ConfirmDialog'
 import Spinner from '../../../components/ui/Spinner'
 import StatusBadge from '../../../components/ui/StatusBadge'
+import api from '../../../api/axios'
 
 export default function ResidentProfile() {
   const { id } = useParams()
@@ -28,6 +29,11 @@ export default function ResidentProfile() {
   // Tabs state
   const [activeTab, setActiveTab] = useState('info') // 'info' | 'docs' | 'blotters'
 
+  // History states
+  const [docHistory, setDocHistory] = useState([])
+  const [blotterHistory, setBlotterHistory] = useState([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+
   // Edit Mode state
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState({
@@ -40,8 +46,13 @@ export default function ResidentProfile() {
     contact_no: '',
     purok: 'Purok 1',
     address: '',
-    household_id: ''
+    household_id: '',
+    email: '',
+    password: '',
+    profile_path: ''
   })
+  const [avatarFile, setAvatarFile] = useState(null)
+  const [avatarPreview, setAvatarPreview] = useState('')
   const [updateLoading, setUpdateLoading] = useState(false)
 
   // Confirm dialog state
@@ -53,6 +64,33 @@ export default function ResidentProfile() {
     fetchResidentById(id)
     fetchHouseholds({ limit: 100 })
   }, [id, setPageTitle, fetchResidentById, fetchHouseholds])
+
+  // Fetch document / blotter history when tab changes
+  useEffect(() => {
+    if (!currentResident) return
+    
+    const loadHistory = async () => {
+      setHistoryLoading(true)
+      try {
+        if (activeTab === 'docs') {
+          const res = await api.get(`/requests/list.php?resident_id=${currentResident.id}&limit=100`)
+          if (res.data.success) {
+            setDocHistory(res.data.requests || [])
+          }
+        } else if (activeTab === 'blotters') {
+          const res = await api.get(`/blotter/list.php?resident_id=${currentResident.id}&limit=100`)
+          if (res.data.success) {
+            setBlotterHistory(res.data.blotters || [])
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load history', err)
+      } finally {
+        setHistoryLoading(false)
+      }
+    }
+    loadHistory()
+  }, [activeTab, currentResident])
 
   // Set edit form values when resident data loads
   useEffect(() => {
@@ -68,8 +106,13 @@ export default function ResidentProfile() {
         contact_no: currentResident.contact_no || '',
         purok: currentResident.purok,
         address: currentResident.address,
-        household_id: currentResident.household_id || ''
+        household_id: currentResident.household_id || '',
+        email: currentResident.account_email || '',
+        password: '',
+        profile_path: currentResident.profile_path || ''
       })
+      setAvatarPreview(currentResident.profile_path || '')
+      setAvatarFile(null)
     }
   }, [currentResident])
 
@@ -93,12 +136,36 @@ export default function ResidentProfile() {
     }))
   }
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setAvatarFile(file)
+      setAvatarPreview(URL.createObjectURL(file))
+    }
+  }
+
   const handleUpdate = async (e) => {
     e.preventDefault()
     setUpdateLoading(true)
 
     try {
-      const res = await updateResident(editForm)
+      let profilePath = editForm.profile_path
+      
+      // If a new avatar file was chosen, upload it first
+      if (avatarFile) {
+        const formDataUpload = new FormData()
+        formDataUpload.append('avatar', avatarFile)
+        const uploadRes = await api.post('/residents/upload-avatar.php', formDataUpload, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        if (!uploadRes.data.success) {
+          throw new Error(uploadRes.data.message || 'Avatar upload failed')
+        }
+        profilePath = uploadRes.data.profile_path
+      }
+
+      const submitData = { ...editForm, profile_path: profilePath }
+      const res = await updateResident(submitData)
       if (res.success) {
         success('Resident profile updated successfully!')
         setIsEditing(false)
@@ -107,7 +174,7 @@ export default function ResidentProfile() {
         showNotifError(res.message || 'Failed to update resident.')
       }
     } catch (err) {
-      showNotifError(err.message || 'An error occurred while updating the profile.')
+      showNotifError(err.message || err.response?.data?.message || 'An error occurred while updating the profile.')
     } finally {
       setUpdateLoading(false)
     }
@@ -178,9 +245,15 @@ export default function ResidentProfile() {
       {/* Profile Header Card */}
       <div className="card p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4 md:gap-6">
-          <div className="w-16 h-16 md:w-20 md:h-20 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl font-bold text-slate-500">
-            {currentResident.first_name[0]}
-            {currentResident.last_name[0]}
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl font-bold text-slate-500 overflow-hidden">
+            {currentResident.profile_path ? (
+              <img src={currentResident.profile_path.startsWith('/uploads') ? `/backend${currentResident.profile_path}` : currentResident.profile_path} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <>
+                {currentResident.first_name[0]}
+                {currentResident.last_name[0]}
+              </>
+            )}
           </div>
 
           <div className="space-y-1">
@@ -247,6 +320,29 @@ export default function ResidentProfile() {
 
               {isEditing ? (
                 <form onSubmit={handleUpdate} className="space-y-6">
+                  {/* Profile Picture Upload */}
+                  <div className="flex flex-col items-center sm:flex-row gap-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800">
+                    <div className="w-20 h-20 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {avatarPreview ? (
+                        <img src={avatarPreview.startsWith('blob:') ? avatarPreview : (avatarPreview.startsWith('/uploads') ? `/backend${avatarPreview}` : avatarPreview)} alt="Avatar preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="label font-semibold">Update Profile Picture</label>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleAvatarChange} 
+                        className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-accent-50 file:text-accent-700 hover:file:bg-accent-100 dark:file:bg-slate-800 dark:file:text-accent-400" 
+                      />
+                      <p className="text-[10px] text-slate-400">Supported formats: JPG, PNG, WEBP. Max size: 5MB.</p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="label">First Name</label>
@@ -385,6 +481,43 @@ export default function ResidentProfile() {
                     </select>
                   </div>
 
+                  <hr className="border-slate-100 dark:border-slate-700" />
+                  
+                  {/* Account Credentials */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Account Credentials (Optional)</h3>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">Provide or update the email and password to allow this resident to log in to the portal.</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="label" htmlFor="email">Email Address</label>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          placeholder="e.g. resident@example.com"
+                          value={editForm.email}
+                          onChange={handleEditChange}
+                          className="input"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="label" htmlFor="password">Login Password</label>
+                        <input
+                          type="password"
+                          id="password"
+                          name="password"
+                          placeholder="Leave blank to keep current password"
+                          value={editForm.password}
+                          onChange={handleEditChange}
+                          className="input"
+                          autoComplete="new-password"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
                     <button 
                       type="button" 
@@ -484,39 +617,93 @@ export default function ResidentProfile() {
             </div>
           )}
 
-          {/* Tab 2: Document History (Placeholder) */}
+          {/* Tab 2: Document History */}
           {activeTab === 'docs' && (
             <div className="card p-6 md:p-8 space-y-6">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-700 pb-4">
                 Document Requests History
               </h2>
-              <div className="text-center py-16">
-                <div className="w-14 h-14 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 text-xs font-bold text-slate-500">
-                  DOC
+              {historyLoading ? (
+                <div className="flex justify-center py-12"><Spinner /></div>
+              ) : docHistory.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Request ID</th>
+                        <th>Document</th>
+                        <th>Status</th>
+                        <th>Requested Date</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {docHistory.map((req) => (
+                        <tr key={req.id}>
+                          <td>#{req.id}</td>
+                          <td className="font-semibold text-slate-900 dark:text-white">{req.document_name}</td>
+                          <td>
+                            <StatusBadge status={req.status} />
+                          </td>
+                          <td>{new Date(req.requested_at).toLocaleDateString()}</td>
+                          <td>
+                            <Link to={`/admin/requests/${req.id}`} className="text-accent-600 dark:text-accent-400 font-semibold text-xs hover:underline">
+                              View Details
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Phase 3 Feature</h3>
-                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                  Historical clearances, indigency certificates, and business permits requested by this resident will appear here.
-                </p>
-              </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-sm text-slate-500">No records found</p>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Tab 3: Blotter Records (Placeholder) */}
+          {/* Tab 3: Blotter Records */}
           {activeTab === 'blotters' && (
             <div className="card p-6 md:p-8 space-y-6">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-700 pb-4">
                 Blotter Incidents Registry
               </h2>
-              <div className="text-center py-16">
-                <div className="w-14 h-14 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 text-xs font-bold text-slate-500">
-                  LOG
+              {historyLoading ? (
+                <div className="flex justify-center py-12"><Spinner /></div>
+              ) : blotterHistory.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Case No.</th>
+                        <th>Incident Type</th>
+                        <th>Respondent</th>
+                        <th>Status</th>
+                        <th>Date Filed</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {blotterHistory.map((caseItem) => (
+                        <tr key={caseItem.id}>
+                          <td>#{caseItem.case_no}</td>
+                          <td className="font-semibold text-slate-900 dark:text-white">{caseItem.incident_type}</td>
+                          <td>{caseItem.respondent_name}</td>
+                          <td>
+                            <StatusBadge status={caseItem.status} />
+                          </td>
+                          <td>{new Date(caseItem.created_at).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Phase 5 Feature</h3>
-                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                  Any blotter entries or mediation records involving this resident as a complainant or respondent will appear here.
-                </p>
-              </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-sm text-slate-500">No records found</p>
+                </div>
+              )}
             </div>
           )}
         </div>

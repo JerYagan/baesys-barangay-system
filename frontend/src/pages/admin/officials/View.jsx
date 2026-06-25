@@ -151,7 +151,7 @@ export default function OfficialProfile() {
   const photoSrc = photoPreview
     ? photoPreview
     : currentOfficial.photo_path
-    ? `${BACKEND_URL}${currentOfficial.photo_path}`
+    ? (currentOfficial.photo_path.startsWith('/uploads') ? `/backend${currentOfficial.photo_path}` : currentOfficial.photo_path)
     : null
 
   return (

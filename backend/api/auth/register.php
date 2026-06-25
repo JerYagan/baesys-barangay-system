@@ -107,7 +107,7 @@ try {
 
     // Create resident record
     $residentStmt = $pdo->prepare(
-        'INSERT INTO residents (user_id, first_name, last_name, middle_name, birthdate, sex, civil_status, contact_no, purok, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO residents (user_id, first_name, last_name, middle_name, birthdate, sex, civil_status, contact_no, purok, address, profile_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
     $residentStmt->execute([
         $userId,
@@ -119,7 +119,8 @@ try {
         $input['civil_status'] ?? 'Single',
         trim($input['contact_no'] ?? ''),
         trim($input['purok']),
-        trim($input['address'])
+        trim($input['address']),
+        !empty($input['profile_path']) ? trim($input['profile_path']) : null
     ]);
 
     // Log the registration

@@ -23,7 +23,7 @@ const BACKEND_URL = '/api'
 
 function OfficialCard({ official, backendBase }) {
   const photoSrc = official.photo_path
-    ? `${backendBase}${official.photo_path}`
+    ? (official.photo_path.startsWith('/uploads') ? `/backend${official.photo_path}` : official.photo_path)
     : null
 
   return (

@@ -72,7 +72,7 @@ export default function HouseholdsList() {
             placeholder="Search by household no. or address..."
             value={search}
             onChange={handleSearchChange}
-            className="input pl-10"
+            className="input pl-10!"
           />
         </div>
 

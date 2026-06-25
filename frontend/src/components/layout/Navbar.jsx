@@ -1,11 +1,13 @@
 // src/components/layout/Navbar.jsx
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useUIStore } from '../../store/useUIStore'
 import { useNotifStore } from '../../store/useNotifStore'
 import { logout as logoutApi } from '../../api/auth'
 import StatusBadge from '../ui/StatusBadge'
 import ThemeToggle from '../ui/ThemeToggle'
+import ConfirmDialog from '../ui/ConfirmDialog'
 
 export default function Navbar() {
   const navigate = useNavigate()
@@ -15,16 +17,26 @@ export default function Navbar() {
   const pageTitle = useUIStore((s) => s.pageTitle)
   const addToast = useNotifStore((s) => s.addToast)
 
-  const handleLogout = async () => {
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
+  const [logoutLoading, setLogoutLoading] = useState(false)
+
+  const handleLogout = () => {
+    setLogoutConfirmOpen(true)
+  }
+
+  const confirmLogout = async () => {
+    setLogoutLoading(true)
     try { await logoutApi() } catch {}
     logout()
     addToast('success', 'Logged out successfully')
+    setLogoutConfirmOpen(false)
     navigate('/login')
   }
 
   const initials = user ? `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase() : '?'
 
   return (
+    <>
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 sm:px-6 lg:px-8">
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">Workspace</p>
@@ -60,5 +72,16 @@ export default function Navbar() {
         </button>
       </div>
     </header>
+    <ConfirmDialog
+      isOpen={logoutConfirmOpen}
+      onClose={() => setLogoutConfirmOpen(false)}
+      onConfirm={confirmLogout}
+      title="Confirm Logout"
+      message="Are you sure you want to log out of your session?"
+      confirmText="Logout"
+      variant="danger"
+      loading={logoutLoading}
+    />
+    </>
   )
 }

@@ -60,9 +60,7 @@ export default function Sidebar() {
   return (
     <aside className={`fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-slate-200 bg-white transition-all duration-200 dark:border-slate-800 dark:bg-slate-950 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
       <div className="flex h-16 items-center gap-2.5 border-b border-slate-200 px-4 dark:border-slate-800">
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-accent-700 dark:bg-accent-600">
-          <span className="text-white font-bold text-xs">B</span>
-        </div>
+        <img src="/images/logo-light.png" alt="Logo" className="h-8 w-8 object-contain flex-shrink-0" />
         {!sidebarCollapsed && (
           <div>
             <span className="block text-sm font-semibold leading-tight text-slate-950 dark:text-white">Baesys</span>

@@ -16,18 +16,11 @@ export default function RequestStatusTracker({ status }) {
     <div className="w-full py-4">
       {/* Stepper container */}
       <div className="flex items-center justify-between relative">
-        {/* Connection Line */}
-        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-slate-200 dark:bg-slate-700 z-0">
-          <div 
-            className="h-full bg-accent-600 transition-all duration-500" 
-            style={{ width: `${(Math.max(0, currentIdx) / (steps.length - 1)) * 100}%` }}
-          />
-        </div>
 
         {/* Steps */}
         {steps.map((step, idx) => {
-          const isCompleted = idx < currentIdx
-          const isActive = idx === currentIdx
+          const isCompleted = idx < currentIdx || (status === 'released' && idx === currentIdx)
+          const isActive = idx === currentIdx && status !== 'released'
           const isPending = idx > currentIdx
 
           return (

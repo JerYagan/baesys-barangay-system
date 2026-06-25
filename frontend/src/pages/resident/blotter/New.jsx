@@ -28,7 +28,7 @@ export default function NewBlotter() {
   const [incidentLocation, setIncidentLocation] = useState('')
   const [description, setDescription] = useState('')
   const [witnessNames, setWitnessNames] = useState('')
-  
+
   const [submitting, setSubmitting] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
@@ -68,7 +68,7 @@ export default function NewBlotter() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 py-6">
+    <div className="mx-auto space-y-6 py-6">
       {/* Title */}
       <div>
         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Blotter & Complaints</p>

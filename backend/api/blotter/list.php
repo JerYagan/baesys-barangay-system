@@ -38,6 +38,13 @@ try {
     
     $params = [];
 
+    // Filter by resident_id
+    if (!empty($_GET['resident_id'])) {
+        $residentId = (int)$_GET['resident_id'];
+        $sql .= ' AND br.complainant_id = ?';
+        $params[] = $residentId;
+    }
+
     // Filter by status
     if (!empty($_GET['status'])) {
         $status = trim($_GET['status']);

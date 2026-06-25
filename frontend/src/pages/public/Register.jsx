@@ -4,6 +4,25 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useNotifStore } from '../../store/useNotifStore'
 import { register as registerApi } from '../../api/auth'
+import api from '../../api/axios'
+
+const Field = ({ id, label, type = 'text', value, onChange, error, placeholder, required, children }) => (
+  <div>
+    <label htmlFor={id} className="label">{label} {required && <span className="text-danger">*</span>}</label>
+    {children || (
+      <input
+        id={id}
+        type={type}
+        className={`input ${error ? 'input-error' : ''}`}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        autoComplete={type === 'password' ? 'new-password' : undefined}
+      />
+    )}
+    {error && <p className="text-xs text-danger mt-1">{error}</p>}
+  </div>
+)
 
 export default function Register() {
   const navigate = useNavigate()
@@ -14,6 +33,8 @@ export default function Register() {
     password: '', confirmPassword: '', birthdate: '', sex: '',
     civil_status: 'Single', contact_no: '', purok: '', address: '',
   })
+  const [avatarFile, setAvatarFile] = useState(null)
+  const [avatarPreview, setAvatarPreview] = useState('')
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
@@ -30,6 +51,7 @@ export default function Register() {
     if (!form.sex) errs.sex = 'Required'
     if (!form.purok.trim()) errs.purok = 'Required'
     if (!form.address.trim()) errs.address = 'Required'
+    if (!avatarFile) errs.avatar = 'Profile picture is required'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -40,16 +62,42 @@ export default function Register() {
 
     setLoading(true)
     try {
+      // 1. Upload Avatar
+      const formDataUpload = new FormData()
+      formDataUpload.append('avatar', avatarFile)
+      
+      const uploadRes = await api.post('/residents/upload-avatar.php', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      
+      if (!uploadRes.data.success) {
+        throw new Error(uploadRes.data.message || 'Avatar upload failed')
+      }
+      
+      const profilePath = uploadRes.data.profile_path
+
+      // 2. Submit Register Form
       const { confirmPassword, ...submitData } = form
+      submitData.profile_path = profilePath
+
       const data = await registerApi(submitData)
       if (data.success) {
         addToast('success', data.message)
         navigate('/login')
       }
     } catch (err) {
-      addToast('error', err.response?.data?.message || 'Registration failed.')
+      addToast('error', err.message || err.response?.data?.message || 'Registration failed.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setAvatarFile(file)
+      setAvatarPreview(URL.createObjectURL(file))
+      if (errors.avatar) setErrors((prev) => ({ ...prev, avatar: undefined }))
     }
   }
 
@@ -57,24 +105,6 @@ export default function Register() {
     setForm((prev) => ({ ...prev, [field]: value }))
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }))
   }
-
-  const Field = ({ id, label, type = 'text', field, placeholder, required, children }) => (
-    <div>
-      <label htmlFor={id} className="label">{label} {required && <span className="text-danger">*</span>}</label>
-      {children || (
-        <input
-          id={id}
-          type={type}
-          className={`input ${errors[field] ? 'input-error' : ''}`}
-          placeholder={placeholder}
-          value={form[field]}
-          onChange={(e) => set(field, e.target.value)}
-          autoComplete={type === 'password' ? 'new-password' : undefined}
-        />
-      )}
-      {errors[field] && <p className="text-xs text-danger mt-1">{errors[field]}</p>}
-    </div>
-  )
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-slate-50 dark:bg-navy-950">
@@ -89,25 +119,99 @@ export default function Register() {
 
         <div className="card p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Profile Picture */}
+            <div className="flex flex-col items-center sm:flex-row gap-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800">
+              <div className="w-20 h-20 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                ) : (
+                  <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                )}
+              </div>
+              <div className="space-y-1">
+                <label className="label font-semibold">Profile Picture <span className="text-danger">*</span></label>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleAvatarChange} 
+                  className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-accent-50 file:text-accent-700 hover:file:bg-accent-100 dark:file:bg-slate-800 dark:file:text-accent-400" 
+                />
+                {errors.avatar && <p className="text-xs text-danger mt-1">{errors.avatar}</p>}
+                <p className="text-[10px] text-slate-400">Supported formats: JPG, PNG, WEBP. Max size: 5MB.</p>
+              </div>
+            </div>
+
             {/* Personal Info */}
             <div>
               <p className="text-xs font-semibold text-slate-500 dark:text-navy-400 uppercase tracking-wider mb-3">Personal Information</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <Field id="r-fn" label="First Name" field="first_name" placeholder="Juan" required />
-                <Field id="r-mn" label="Middle Name" field="middle_name" placeholder="Santos" />
-                <Field id="r-ln" label="Last Name" field="last_name" placeholder="Dela Cruz" required />
+                <Field
+                  id="r-fn"
+                  label="First Name"
+                  value={form.first_name}
+                  onChange={(e) => set('first_name', e.target.value)}
+                  error={errors.first_name}
+                  placeholder="Juan"
+                  required
+                />
+                <Field
+                  id="r-mn"
+                  label="Middle Name"
+                  value={form.middle_name}
+                  onChange={(e) => set('middle_name', e.target.value)}
+                  error={errors.middle_name}
+                  placeholder="Santos"
+                />
+                <Field
+                  id="r-ln"
+                  label="Last Name"
+                  value={form.last_name}
+                  onChange={(e) => set('last_name', e.target.value)}
+                  error={errors.last_name}
+                  placeholder="Dela Cruz"
+                  required
+                />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-                <Field id="r-bd" label="Birthdate" type="date" field="birthdate" required />
-                <Field id="r-sex" label="Sex" field="sex" required>
-                  <select id="r-sex" className={`input ${errors.sex ? 'input-error' : ''}`} value={form.sex} onChange={(e) => set('sex', e.target.value)}>
+                <Field
+                  id="r-bd"
+                  label="Birthdate"
+                  type="date"
+                  value={form.birthdate}
+                  onChange={(e) => set('birthdate', e.target.value)}
+                  error={errors.birthdate}
+                  required
+                />
+                <Field
+                  id="r-sex"
+                  label="Sex"
+                  error={errors.sex}
+                  required
+                >
+                  <select
+                    id="r-sex"
+                    className={`input ${errors.sex ? 'input-error' : ''}`}
+                    value={form.sex}
+                    onChange={(e) => set('sex', e.target.value)}
+                  >
                     <option value="">Select...</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                   </select>
                 </Field>
-                <Field id="r-cs" label="Civil Status" field="civil_status">
-                  <select id="r-cs" className="input" value={form.civil_status} onChange={(e) => set('civil_status', e.target.value)}>
+                <Field
+                  id="r-cs"
+                  label="Civil Status"
+                  error={errors.civil_status}
+                >
+                  <select
+                    id="r-cs"
+                    className="input"
+                    value={form.civil_status}
+                    onChange={(e) => set('civil_status', e.target.value)}
+                  >
                     <option value="Single">Single</option>
                     <option value="Married">Married</option>
                     <option value="Widowed">Widowed</option>
@@ -121,11 +225,34 @@ export default function Register() {
             <div>
               <p className="text-xs font-semibold text-slate-500 dark:text-navy-400 uppercase tracking-wider mb-3">Contact & Address</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field id="r-cn" label="Contact Number" field="contact_no" placeholder="09XX-XXX-XXXX" />
-                <Field id="r-pk" label="Purok / Zone" field="purok" placeholder="Purok 1" required />
+                <Field
+                  id="r-cn"
+                  label="Contact Number"
+                  value={form.contact_no}
+                  onChange={(e) => set('contact_no', e.target.value)}
+                  error={errors.contact_no}
+                  placeholder="09XX-XXX-XXXX"
+                />
+                <Field
+                  id="r-pk"
+                  label="Purok / Zone"
+                  value={form.purok}
+                  onChange={(e) => set('purok', e.target.value)}
+                  error={errors.purok}
+                  placeholder="Purok 1"
+                  required
+                />
               </div>
               <div className="mt-3">
-                <Field id="r-addr" label="Complete Address" field="address" placeholder="Street, Barangay, Municipality" required />
+                <Field
+                  id="r-addr"
+                  label="Complete Address"
+                  value={form.address}
+                  onChange={(e) => set('address', e.target.value)}
+                  error={errors.address}
+                  placeholder="Street, Barangay, Municipality"
+                  required
+                />
               </div>
             </div>
 
@@ -133,9 +260,36 @@ export default function Register() {
             <div>
               <p className="text-xs font-semibold text-slate-500 dark:text-navy-400 uppercase tracking-wider mb-3">Account Credentials</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <Field id="r-email" label="Email" type="email" field="email" placeholder="you@example.com" required />
-                <Field id="r-pw" label="Password" type="password" field="password" placeholder="Min 6 chars" required />
-                <Field id="r-cpw" label="Confirm Password" type="password" field="confirmPassword" placeholder="Re-enter" required />
+                <Field
+                  id="r-email"
+                  label="Email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => set('email', e.target.value)}
+                  error={errors.email}
+                  placeholder="you@example.com"
+                  required
+                />
+                <Field
+                  id="r-pw"
+                  label="Password"
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => set('password', e.target.value)}
+                  error={errors.password}
+                  placeholder="Min 6 chars"
+                  required
+                />
+                <Field
+                  id="r-cpw"
+                  label="Confirm Password"
+                  type="password"
+                  value={form.confirmPassword}
+                  onChange={(e) => set('confirmPassword', e.target.value)}
+                  error={errors.confirmPassword}
+                  placeholder="Re-enter"
+                  required
+                />
               </div>
             </div>
 

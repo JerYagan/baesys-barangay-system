@@ -19,11 +19,10 @@ INSERT INTO `document_types` (`name`, `description`, `fee`, `processing_days`, `
 ('Business Clearance', 'Clearance required for business permit applications within the barangay.', 200.00, 3, 1),
 ('First Time Job Seeker Certification', 'Certification under RA 11261 for first-time job seekers, exempt from fees.', 0.00, 1, 1);
 
--- Default system settings
 INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
-('barangay_name', 'Barangay Sample'),
-('barangay_address', '123 Main Street, Municipality, Province'),
-('barangay_contact', '(012) 345-6789'),
-('barangay_email', 'barangay@sample.gov.ph'),
+('barangay_name', 'Barangay Baesa'),
+('barangay_address', '22 Saklolo St., Manotoc Subdivision, Brgy. Baesa, Quezon City'),
+('barangay_contact', '7-3393-122 / 0962-715-0979'),
+('barangay_email', 'baesajuan4all@gmail.com'),
 ('office_hours', 'Monday - Friday, 8:00 AM - 5:00 PM'),
 ('barangay_logo', NULL);

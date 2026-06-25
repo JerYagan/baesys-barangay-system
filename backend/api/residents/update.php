@@ -67,7 +67,7 @@ try {
     $pdo = getDBConnection();
 
     // Check if resident exists
-    $checkStmt = $pdo->prepare('SELECT id, first_name, last_name, household_id FROM residents WHERE id = ?');
+    $checkStmt = $pdo->prepare('SELECT id, first_name, last_name, household_id, user_id FROM residents WHERE id = ?');
     $checkStmt->execute([$id]);
     $existing = $checkStmt->fetch();
 
@@ -77,10 +77,98 @@ try {
         exit;
     }
 
+    $email = isset($input['email']) ? trim($input['email']) : '';
+    $password = isset($input['password']) ? $input['password'] : '';
+    $userId = $existing['user_id'];
+
+    if ($email !== '') {
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid email format']);
+            exit;
+        }
+
+        // Check duplicates
+        if ($userId === null) {
+            $emailCheck = $pdo->prepare('SELECT COUNT(*) as count FROM users WHERE email = ?');
+            $emailCheck->execute([$email]);
+            if ((int)$emailCheck->fetch()['count'] > 0) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Email address is already in use']);
+                exit;
+            }
+            if (strlen($password) < 6) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Password must be at least 6 characters long']);
+                exit;
+            }
+        } else {
+            $emailCheck = $pdo->prepare('SELECT COUNT(*) as count FROM users WHERE email = ? AND id != ?');
+            $emailCheck->execute([$email, $userId]);
+            if ((int)$emailCheck->fetch()['count'] > 0) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Email address is already in use']);
+                exit;
+            }
+            if ($password !== '' && strlen($password) < 6) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Password must be at least 6 characters long']);
+                exit;
+            }
+        }
+    }
+
     $householdId = !empty($input['household_id']) ? (int)$input['household_id'] : null;
 
     // Begin Transaction to handle Household Head update check
     $pdo->beginTransaction();
+
+    // If resident has no linked account, but email/password are provided now
+    if ($userId === null && $email !== '') {
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+        $userStmt = $pdo->prepare('
+            INSERT INTO users (email, password_hash, first_name, last_name, role, status) 
+            VALUES (?, ?, ?, ?, \'resident\', \'active\')
+        ');
+        $userStmt->execute([
+            $email,
+            $passwordHash,
+            trim($input['first_name']),
+            trim($input['last_name'])
+        ]);
+        $userId = $pdo->lastInsertId();
+    } 
+    // If resident already has a linked account, update it
+    else if ($userId !== null && $email !== '') {
+        if ($password !== '') {
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+            $userStmt = $pdo->prepare('
+                UPDATE users 
+                SET email = ?, password_hash = ?, first_name = ?, last_name = ? 
+                WHERE id = ?
+            ');
+            $userStmt->execute([
+                $email,
+                $passwordHash,
+                trim($input['first_name']),
+                trim($input['last_name']),
+                $userId
+            ]);
+        } else {
+            $userStmt = $pdo->prepare('
+                UPDATE users 
+                SET email = ?, first_name = ?, last_name = ? 
+                WHERE id = ?
+            ');
+            $userStmt->execute([
+                $email,
+                trim($input['first_name']),
+                trim($input['last_name']),
+                $userId
+            ]);
+        }
+    }
 
     // If resident was household head but is now unlinked or moved to another household,
     // clear the head resident id in their old household.
@@ -96,12 +184,13 @@ try {
     // Update resident details
     $stmt = $pdo->prepare('
         UPDATE residents 
-        SET first_name = ?, last_name = ?, middle_name = ?, birthdate = ?, sex = ?, 
-            civil_status = ?, contact_no = ?, purok = ?, address = ?, household_id = ?
+        SET user_id = ?, first_name = ?, last_name = ?, middle_name = ?, birthdate = ?, sex = ?, 
+            civil_status = ?, contact_no = ?, purok = ?, address = ?, household_id = ?, profile_path = ?
         WHERE id = ?
     ');
 
     $stmt->execute([
+        $userId,
         trim($input['first_name']),
         trim($input['last_name']),
         trim($input['middle_name'] ?? ''),
@@ -112,6 +201,7 @@ try {
         trim($input['purok']),
         trim($input['address']),
         $householdId,
+        !empty($input['profile_path']) ? trim($input['profile_path']) : null,
         $id
     ]);
 

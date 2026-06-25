@@ -42,7 +42,7 @@ try {
     $resident = null;
     if ($user['role'] === 'resident') {
         $resStmt = $pdo->prepare(
-            'SELECT id, first_name, last_name, middle_name, birthdate, sex, civil_status, contact_no, purok, address, household_id FROM residents WHERE user_id = ?'
+            'SELECT id, first_name, last_name, middle_name, birthdate, sex, civil_status, contact_no, purok, address, household_id, profile_path FROM residents WHERE user_id = ?'
         );
         $resStmt->execute([$user['id']]);
         $resident = $resStmt->fetch();

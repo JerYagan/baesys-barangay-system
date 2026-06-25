@@ -13,13 +13,13 @@
         .border-container {
             border: 4px double #334155;
             padding: 25px;
-            height: 94%;
+            height: 90%;
         }
         .header {
             text-align: center;
             border-bottom: 2px solid #475569;
             padding-bottom: 12px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         .header h3 {
             margin: 0;
@@ -45,7 +45,7 @@
         }
         .title-container {
             text-align: center;
-            margin: 30px 0;
+            margin: 20px 0;
         }
         .title {
             font-size: 24px;
@@ -68,7 +68,7 @@
             color: #0f172a;
         }
         .footer-section {
-            margin-top: 60px;
+            margin-top: 40px;
         }
         .seal-box {
             float: left;
@@ -88,7 +88,7 @@
             float: right;
             width: 250px;
             text-align: center;
-            margin-top: 40px;
+            margin-top: 20px;
         }
         .signature-line {
             border-top: 1px solid #0f172a;
@@ -106,7 +106,7 @@
             color: #64748b;
         }
         .meta-info {
-            margin-top: 80px;
+            margin-top: 40px;
             font-size: 11px;
             color: #64748b;
             line-height: 1.8;
@@ -117,11 +117,10 @@
 </head>
 <body>
     <div class="border-container">
-        <!-- Header -->
         <div class="header">
             <h3>Republic of the Philippines</h3>
-            <h3>Province of Sample</h3>
-            <h2>MUNICIPALITY OF SAMPLE</h2>
+            <h3>National Capital Region</h3>
+            <h2>QUEZON CITY</h2>
             <h1>BARANGAY <?php echo htmlspecialchars($barangay_name); ?></h1>
             <div style="font-size: 11px; color: #64748b; margin-top: 5px;">
                 <?php echo htmlspecialchars($barangay_address); ?> | Tel: <?php echo htmlspecialchars($barangay_contact); ?>

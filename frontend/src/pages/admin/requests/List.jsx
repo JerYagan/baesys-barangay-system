@@ -133,7 +133,7 @@ export default function DocumentRequestsList() {
               placeholder="Search by resident name..."
               value={search}
               onChange={handleSearchChange}
-              className="input pl-10"
+              className="input pl-10!"
             />
           </div>
 

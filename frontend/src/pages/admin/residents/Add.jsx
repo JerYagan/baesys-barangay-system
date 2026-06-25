@@ -5,6 +5,7 @@ import { useAdminStore } from '../../../store/useAdminStore'
 import { useUIStore } from '../../../store/useUIStore'
 import { useNotifStore } from '../../../store/useNotifStore'
 import Spinner from '../../../components/ui/Spinner'
+import api from '../../../api/axios'
 
 export default function AddResident() {
   const { setPageTitle } = useUIStore()
@@ -23,8 +24,12 @@ export default function AddResident() {
     contact_no: '',
     purok: 'Purok 1',
     address: '',
-    household_id: ''
+    household_id: '',
+    email: '',
+    password: ''
   })
+  const [avatarFile, setAvatarFile] = useState(null)
+  const [avatarPreview, setAvatarPreview] = useState('')
 
   useEffect(() => {
     setPageTitle('Add Resident')
@@ -39,6 +44,14 @@ export default function AddResident() {
     }))
   }
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setAvatarFile(file)
+      setAvatarPreview(URL.createObjectURL(file))
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -50,8 +63,30 @@ export default function AddResident() {
       return
     }
 
+    if (!avatarFile) {
+      showNotifError('Profile picture is required.')
+      setLoading(false)
+      return
+    }
+
     try {
-      const res = await createResident(formData)
+      // 1. Upload Avatar
+      const formDataUpload = new FormData()
+      formDataUpload.append('avatar', avatarFile)
+      
+      const uploadRes = await api.post('/residents/upload-avatar.php', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      
+      if (!uploadRes.data.success) {
+        throw new Error(uploadRes.data.message || 'Avatar upload failed')
+      }
+      
+      const profilePath = uploadRes.data.profile_path
+
+      // 2. Submit resident details
+      const submitData = { ...formData, profile_path: profilePath }
+      const res = await createResident(submitData)
       if (res.success) {
         success('Resident record created successfully!')
         navigate('/admin/residents')
@@ -59,7 +94,7 @@ export default function AddResident() {
         showNotifError(res.message || 'Failed to create resident.')
       }
     } catch (err) {
-      showNotifError(err.message || 'An error occurred while creating the resident.')
+      showNotifError(err.message || err.response?.data?.message || 'An error occurred while creating the resident.')
     } finally {
       setLoading(false)
     }
@@ -84,6 +119,29 @@ export default function AddResident() {
         <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Resident Registration Form</h2>
         
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Profile Picture */}
+          <div className="flex flex-col items-center sm:flex-row gap-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800">
+            <div className="w-20 h-20 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {avatarPreview ? (
+                <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+              ) : (
+                <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              )}
+            </div>
+            <div className="space-y-1">
+              <label className="label font-semibold">Profile Picture <span className="text-danger">*</span></label>
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleAvatarChange} 
+                className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-accent-50 file:text-accent-700 hover:file:bg-accent-100 dark:file:bg-slate-800 dark:file:text-accent-400" 
+              />
+              <p className="text-[10px] text-slate-400">Supported formats: JPG, PNG, WEBP. Max size: 5MB.</p>
+            </div>
+          </div>
+
           {/* Section 1: Personal Info */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Personal Information</h3>
@@ -255,6 +313,43 @@ export default function AddResident() {
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          <hr className="border-slate-100 dark:border-slate-700" />
+
+          {/* Section 4: Account Credentials */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Account Credentials (Optional)</h3>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Provide an email and password to allow this resident to log in to the portal.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="label" htmlFor="email">Email Address</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="e.g. resident@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="input"
+                />
+              </div>
+
+              <div>
+                <label className="label" htmlFor="password">Login Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Min 6 characters"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="input"
+                  autoComplete="new-password"
+                />
+              </div>
             </div>
           </div>
 

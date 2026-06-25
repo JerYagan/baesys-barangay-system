@@ -1,6 +1,6 @@
 // src/pages/public/AnnouncementDetail.jsx
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useLocation } from 'react-router-dom'
 import api from '../../api/axios'
 import Spinner from '../../components/ui/Spinner'
 
@@ -12,6 +12,10 @@ const categoryBadges = {
 
 export default function AnnouncementDetail() {
   const { id } = useParams()
+  const location = useLocation()
+  const isResident = location.pathname.startsWith('/resident')
+  const routePrefix = isResident ? '/resident/announcements' : '/announcements'
+
   const [announcement, setAnnouncement] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -64,7 +68,7 @@ export default function AnnouncementDetail() {
         </div>
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Announcement Not Found</h2>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{error || 'The requested announcement is not available.'}</p>
-        <Link to="/announcements" className="mt-6 inline-flex btn btn-secondary btn-sm">
+        <Link to={routePrefix} className="mt-6 inline-flex btn btn-secondary btn-sm">
           Back to Announcements
         </Link>
       </div>
@@ -76,7 +80,7 @@ export default function AnnouncementDetail() {
       {/* Back button link */}
       <div className="mb-6">
         <Link
-          to="/announcements"
+          to={routePrefix}
           className="inline-flex items-center text-sm font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
         >
           <svg className="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

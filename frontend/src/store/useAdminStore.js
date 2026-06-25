@@ -528,4 +528,164 @@ export const useAdminStore = create((set, get) => ({
       throw error.response?.data || new Error('Failed to update program')
     }
   },
+
+  // Settings State & Actions
+  settings: {},
+  settingsLoading: false,
+  fetchSettings: async () => {
+    set({ settingsLoading: true })
+    try {
+      const res = await api.get('/settings/get.php')
+      if (res.data.success) {
+        set({ settings: res.data.settings })
+      }
+    } catch (error) {
+      console.error('Failed to fetch settings', error)
+    } finally {
+      set({ settingsLoading: false })
+    }
+  },
+  updateSettings: async (settingsData) => {
+    set({ settingsLoading: true })
+    try {
+      const res = await api.put('/settings/update.php', { settings: settingsData })
+      if (res.data.success) {
+        set({ settings: settingsData })
+        return res.data
+      }
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to update settings')
+    } finally {
+      set({ settingsLoading: false })
+    }
+  },
+
+  // Document Types State & Actions
+  docTypes: [],
+  docTypesLoading: false,
+  fetchAdminDocTypes: async () => {
+    set({ docTypesLoading: true })
+    try {
+      const res = await api.get('/document-types/list.php?all=1')
+      if (res.data.success) {
+        set({ docTypes: res.data.document_types || [] })
+      }
+    } catch (error) {
+      console.error('Failed to fetch admin doc types', error)
+    } finally {
+      set({ docTypesLoading: false })
+    }
+  },
+  addDocType: async (data) => {
+    try {
+      const res = await api.post('/document-types/add.php', data)
+      return res.data
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to add document type')
+    }
+  },
+  updateDocType: async (data) => {
+    try {
+      const res = await api.put('/document-types/update.php', data)
+      return res.data
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to update document type')
+    }
+  },
+  toggleDocType: async (id) => {
+    try {
+      const res = await api.patch('/document-types/toggle.php', { id })
+      return res.data
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to toggle document type')
+    }
+  },
+
+  // User Accounts State & Actions
+  users: [],
+  usersTotal: 0,
+  usersPages: 1,
+  usersCurrentPage: 1,
+  usersLoading: false,
+  fetchUsers: async (params = {}) => {
+    set({ usersLoading: true })
+    try {
+      const queryParams = new URLSearchParams()
+      if (params.page) queryParams.append('page', params.page)
+      if (params.limit) queryParams.append('limit', params.limit)
+      if (params.search) queryParams.append('search', params.search)
+      if (params.role) queryParams.append('role', params.role)
+      if (params.status) queryParams.append('status', params.status)
+
+      const res = await api.get(`/users/list.php?${queryParams.toString()}`)
+      if (res.data.success) {
+        set({
+          users: res.data.users,
+          usersTotal: res.data.totalItems,
+          usersPages: res.data.totalPages,
+          usersCurrentPage: res.data.currentPage,
+        })
+      }
+    } catch (error) {
+      console.error('Failed to fetch users', error)
+    } finally {
+      set({ usersLoading: false })
+    }
+  },
+  approveUser: async (id) => {
+    try {
+      const res = await api.patch('/users/approve.php', { id })
+      return res.data
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to approve user')
+    }
+  },
+  changeUserRole: async (id, role) => {
+    try {
+      const res = await api.patch('/users/change-role.php', { id, role })
+      return res.data
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to change user role')
+    }
+  },
+  toggleUserActive: async (id, currentStatus) => {
+    try {
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
+      const res = await api.patch('/users/toggle-active.php', { id, status: newStatus })
+      return res.data
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to toggle user status')
+    }
+  },
+
+  // Activity Log State & Actions
+  activityLogs: [],
+  activityLogsTotal: 0,
+  activityLogsPages: 1,
+  activityLogsCurrentPage: 1,
+  activityLogsLoading: false,
+  fetchActivityLogs: async (params = {}) => {
+    set({ activityLogsLoading: true })
+    try {
+      const queryParams = new URLSearchParams()
+      if (params.page) queryParams.append('page', params.page)
+      if (params.limit) queryParams.append('limit', params.limit)
+      if (params.search) queryParams.append('search', params.search)
+      if (params.action) queryParams.append('action', params.action)
+
+      const res = await api.get(`/activity-log/list.php?${queryParams.toString()}`)
+      if (res.data.success) {
+        set({
+          activityLogs: res.data.logs,
+          activityLogsTotal: res.data.totalItems,
+          activityLogsPages: res.data.totalPages,
+          activityLogsCurrentPage: res.data.currentPage,
+        })
+      }
+    } catch (error) {
+      console.error('Failed to fetch activity logs', error)
+    } finally {
+      set({ activityLogsLoading: false })
+    }
+  },
 }))

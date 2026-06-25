@@ -61,6 +61,10 @@ const ProgramDetail = lazy(() => import('../pages/admin/programs/View'))
 const AnnouncementsList = lazy(() => import('../pages/public/AnnouncementsList'))
 const AnnouncementDetail = lazy(() => import('../pages/public/AnnouncementDetail'))
 
+// Phase 7 — Admin pages
+const AdminSettings = lazy(() => import('../pages/admin/Settings'))
+const AdminActivityLog = lazy(() => import('../pages/admin/ActivityLog'))
+
 /**
  * ProtectedRoute — Checks if user is authenticated.
  * Redirects to /login if not.
@@ -223,8 +227,8 @@ const router = createBrowserRouter([
       { path: '/admin/programs/add', element: <LazyPage><AddProgram /></LazyPage> },
       { path: '/admin/programs/:id', element: <LazyPage><ProgramDetail /></LazyPage> },
       // Phase 7 — Admin Only
-      { path: '/admin/activity-log', element: <ComingSoon title="Activity Log" /> },
-      { path: '/admin/settings', element: <ComingSoon title="System Settings" /> },
+      { path: '/admin/activity-log', element: <LazyPage><AdminActivityLog /></LazyPage> },
+      { path: '/admin/settings', element: <LazyPage><AdminSettings /></LazyPage> },
     ],
   },
 
@@ -251,6 +255,9 @@ const router = createBrowserRouter([
       { path: '/resident/blotter/history', element: <LazyPage><ResidentBlotterHistory /></LazyPage> },
       // Profile
       { path: '/resident/profile', element: <LazyPage><ResidentSelfProfile /></LazyPage> },
+      // Phase 8.1 — Announcements
+      { path: '/resident/announcements', element: <LazyPage><AnnouncementsList /></LazyPage> },
+      { path: '/resident/announcements/:id', element: <LazyPage><AnnouncementDetail /></LazyPage> },
     ],
   },
 

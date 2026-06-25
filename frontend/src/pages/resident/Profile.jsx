@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useResidentStore } from '../../store/useResidentStore'
 import { useNotifStore } from '../../store/useNotifStore'
 import Spinner from '../../components/ui/Spinner'
+import api from '../../api/axios'
 
 export default function ResidentProfile() {
   const { profile, profileLoading, fetchProfile, changePassword } = useResidentStore()
@@ -13,10 +14,42 @@ export default function ResidentProfile() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [avatarLoading, setAvatarLoading] = useState(false)
 
   useEffect(() => {
     fetchProfile()
   }, [])
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    setAvatarLoading(true)
+    try {
+      const fd = new FormData()
+      fd.append('avatar', file)
+      const uploadRes = await api.post('/residents/upload-avatar.php', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      if (!uploadRes.data.success) {
+        throw new Error(uploadRes.data.message || 'Upload failed')
+      }
+      
+      const updateRes = await api.post('/residents/update-my-avatar.php', {
+        profile_path: uploadRes.data.profile_path
+      })
+      if (updateRes.data.success) {
+        showSuccess('Profile picture updated successfully!')
+        fetchProfile()
+      } else {
+        showError(updateRes.data.message || 'Failed to update avatar')
+      }
+    } catch (err) {
+      showError(err.message || err.response?.data?.message || 'An error occurred during upload.')
+    } finally {
+      setAvatarLoading(false)
+    }
+  }
 
   const handlePasswordChange = async (e) => {
     e.preventDefault()
@@ -88,7 +121,33 @@ export default function ResidentProfile() {
             </h3>
             
             {profile ? (
-              <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 text-xs">
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800/80">
+                  <div className="w-16 h-16 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0">
+                    {profile.profile_path ? (
+                      <img src={profile.profile_path.startsWith('/uploads') ? `/backend${profile.profile_path}` : profile.profile_path} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-slate-400 font-bold text-lg">
+                        {`${profile.first_name?.[0] || ''}${profile.last_name?.[0] || ''}`.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="label font-semibold text-xs">Profile Photo</label>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleAvatarChange} 
+                      disabled={avatarLoading}
+                      className="text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-accent-50 file:text-accent-700 hover:file:bg-accent-100 dark:file:bg-slate-800 dark:file:text-accent-400" 
+                    />
+                    <p className="text-[9px] text-slate-400">
+                      {avatarLoading ? 'Uploading new photo...' : 'JPG, PNG or WEBP. Max size: 5MB.'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 text-xs">
                 <div>
                   <span className="text-slate-400 block mb-1">First Name</span>
                   <span className="font-semibold text-slate-900 dark:text-white">{profile.first_name || '—'}</span>
@@ -126,7 +185,8 @@ export default function ResidentProfile() {
                   <span className="font-semibold text-slate-900 dark:text-white">{profile.address || '—'}</span>
                 </div>
               </div>
-            ) : (
+            </div>
+          ) : (
               <div className="py-6 text-center text-xs text-slate-400">
                 Failed to load profile details.
               </div>
