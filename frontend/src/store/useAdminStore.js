@@ -688,4 +688,108 @@ export const useAdminStore = create((set, get) => ({
       set({ activityLogsLoading: false })
     }
   },
+
+  // Clinic Management Actions
+  clinicServices: [],
+  clinicServicesLoading: false,
+  fetchClinicServices: async () => {
+    set({ clinicServicesLoading: true })
+    try {
+      const res = await api.get('/clinic/services.php')
+      if (res.data.success) {
+        set({ clinicServices: res.data.services })
+      }
+    } catch (error) {
+      console.error('Failed to fetch clinic services', error)
+    } finally {
+      set({ clinicServicesLoading: false })
+    }
+  },
+
+  createClinicService: async (data) => {
+    try {
+      const res = await api.post('/clinic/services.php', data)
+      return res.data
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to create clinic service')
+    }
+  },
+
+  clinicSchedules: [],
+  clinicSchedulesLoading: false,
+  fetchClinicSchedules: async (serviceId, date = '') => {
+    set({ clinicSchedulesLoading: true })
+    try {
+      const queryParams = new URLSearchParams()
+      if (serviceId) queryParams.append('service_id', serviceId)
+      if (date) queryParams.append('date', date)
+      
+      const res = await api.get(`/clinic/schedules.php?${queryParams.toString()}`)
+      if (res.data.success) {
+        set({ clinicSchedules: res.data.schedules })
+      }
+    } catch (error) {
+      console.error('Failed to fetch clinic schedules', error)
+    } finally {
+      set({ clinicSchedulesLoading: false })
+    }
+  },
+
+  createClinicSchedule: async (data) => {
+    try {
+      const res = await api.post('/clinic/schedules.php', data)
+      return res.data
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to create schedule slot')
+    }
+  },
+
+  clinicAppointments: [],
+  clinicAppointmentsLoading: false,
+  fetchClinicAppointments: async (params = {}) => {
+    set({ clinicAppointmentsLoading: true })
+    try {
+      const queryParams = new URLSearchParams()
+      if (params.status) queryParams.append('status', params.status)
+      if (params.date) queryParams.append('date', params.date)
+      if (params.service_id) queryParams.append('service_id', params.service_id)
+
+      const res = await api.get(`/clinic/appointments.php?${queryParams.toString()}`)
+      if (res.data.success) {
+        set({ clinicAppointments: res.data.appointments })
+      }
+    } catch (error) {
+      console.error('Failed to fetch clinic appointments', error)
+    } finally {
+      set({ clinicAppointmentsLoading: false })
+    }
+  },
+
+  updateAppointmentStatus: async (id, status, staffNotes = '') => {
+    try {
+      const res = await api.put('/clinic/appointments.php', { id, status, staff_notes: staffNotes })
+      return res.data
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to update appointment')
+    }
+  },
+
+  // Digital ID Management Actions
+  generateDigitalId: async (residentId) => {
+    try {
+      const res = await api.post('/digital-id/generate.php', { resident_id: residentId })
+      return res.data
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to generate Digital ID')
+    }
+  },
+
+  scanVerifyDigitalId: async (hash) => {
+    try {
+      const res = await api.get(`/digital-id/scan-verify.php?hash=${hash}`)
+      return res.data
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to verify Digital ID hash')
+    }
+  }
 }))

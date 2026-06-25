@@ -28,12 +28,22 @@ const HouseholdDetails = lazy(() => import('../pages/admin/households/View'))
 const DocumentRequestsList = lazy(() => import('../pages/admin/requests/List'))
 const DocumentRequestDetail = lazy(() => import('../pages/admin/requests/View'))
 
+// Phase 9 — Clinic & Digital ID
+const ClinicDashboard = lazy(() => import('../pages/admin/clinic/Dashboard'))
+const AppointmentsManager = lazy(() => import('../pages/admin/clinic/Appointments'))
+const IDScanner = lazy(() => import('../pages/admin/digital-id/Scanner'))
+
 // Resident pages
 const ResidentDashboard = lazy(() => import('../pages/resident/Dashboard'))
 const ResidentNewRequest = lazy(() => import('../pages/resident/requests/New'))
 const ResidentRequestHistory = lazy(() => import('../pages/resident/requests/History'))
 const ResidentRequestDetail = lazy(() => import('../pages/resident/requests/View'))
 const ResidentSelfProfile = lazy(() => import('../pages/resident/Profile'))
+
+// Phase 9 — Clinic & Digital ID
+const ClinicBooking = lazy(() => import('../pages/resident/clinic/Booking'))
+const MyAppointments = lazy(() => import('../pages/resident/clinic/History'))
+const DigitalID = lazy(() => import('../pages/resident/profile/DigitalID'))
 
 // Phase 5 — Blotter pages
 const ResidentNewBlotter = lazy(() => import('../pages/resident/blotter/New'))
@@ -229,6 +239,10 @@ const router = createBrowserRouter([
       // Phase 7 — Admin Only
       { path: '/admin/activity-log', element: <LazyPage><AdminActivityLog /></LazyPage> },
       { path: '/admin/settings', element: <LazyPage><AdminSettings /></LazyPage> },
+      // Phase 9 — Clinic & Digital ID
+      { path: '/admin/clinic/schedules', element: <LazyPage><ClinicDashboard /></LazyPage> },
+      { path: '/admin/clinic/bookings', element: <LazyPage><AppointmentsManager /></LazyPage> },
+      { path: '/admin/digital-id/scanner', element: <LazyPage><IDScanner /></LazyPage> },
     ],
   },
 
@@ -258,6 +272,10 @@ const router = createBrowserRouter([
       // Phase 8.1 — Announcements
       { path: '/resident/announcements', element: <LazyPage><AnnouncementsList /></LazyPage> },
       { path: '/resident/announcements/:id', element: <LazyPage><AnnouncementDetail /></LazyPage> },
+      // Phase 9 — Clinic & Digital ID
+      { path: '/resident/clinic/booking', element: <LazyPage><ClinicBooking /></LazyPage> },
+      { path: '/resident/clinic/history', element: <LazyPage><MyAppointments /></LazyPage> },
+      { path: '/resident/profile/digital-id', element: <LazyPage><DigitalID /></LazyPage> },
     ],
   },
 

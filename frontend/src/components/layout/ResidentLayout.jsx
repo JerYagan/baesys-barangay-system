@@ -8,11 +8,25 @@ import ThemeToggle from '../ui/ThemeToggle'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import api from '../../api/axios'
 
-const navLinks = [
+const navItems = [
   { label: 'Dashboard', path: '/resident/dashboard' },
-  { label: 'Request Document', path: '/resident/request/new' },
-  { label: 'My Requests', path: '/resident/request/history' },
-  { label: 'File Blotter', path: '/resident/blotter/new' },
+  {
+    label: 'Documents',
+    items: [
+      { label: 'Request Document', path: '/resident/request/new' },
+      { label: 'Request History', path: '/resident/request/history' },
+    ]
+  },
+  {
+    label: 'Services',
+    items: [
+      { label: 'Clinic Booking', path: '/resident/clinic/booking' },
+      { label: 'Appointment History', path: '/resident/clinic/history' },
+      { label: 'File Blotter', path: '/resident/blotter/new' },
+      { label: 'Blotter History', path: '/resident/blotter/history' },
+      { label: 'Digital ID', path: '/resident/profile/digital-id' },
+    ]
+  },
   { label: 'Announcements', path: '/resident/announcements' },
 ]
 
@@ -138,20 +152,47 @@ export default function ResidentLayout() {
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-0.5 lg:flex">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors ${
-                  location.pathname === link.path
-                    ? 'bg-accent-700 text-white dark:bg-accent-600'
-                    : 'text-slate-500 hover:bg-accent-50 hover:text-accent-800 dark:text-slate-400 dark:hover:bg-accent-950/30 dark:hover:text-white'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <nav className="hidden items-center gap-2 lg:flex">
+            {navItems.map((item) => {
+              if (item.items) {
+                return (
+                  <div key={item.label} className="relative group">
+                    <button className="flex items-center gap-1 rounded-md px-3 py-1.5 text-[13px] font-semibold text-slate-500 hover:bg-accent-50 hover:text-accent-800 dark:text-slate-400 dark:hover:bg-accent-950/30 dark:hover:text-white transition-colors">
+                      <span>{item.label}</span>
+                      <svg className="w-3.5 h-3.5 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    <div className="absolute left-0 mt-0.5 w-48 origin-top-left rounded-md border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950 py-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-150 z-50">
+                      {item.items.map((subItem) => (
+                        <Link
+                          key={subItem.path}
+                          to={subItem.path}
+                          className={`block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-accent-50 hover:text-accent-800 dark:text-slate-300 dark:hover:bg-accent-950/30 transition-colors ${
+                            location.pathname === subItem.path ? 'bg-accent-50 text-accent-800 dark:bg-accent-950/30 dark:text-white' : ''
+                          }`}
+                        >
+                          {subItem.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )
+              }
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors ${
+                    location.pathname === item.path
+                      ? 'bg-accent-700 text-white dark:bg-accent-600'
+                      : 'text-slate-500 hover:bg-accent-50 hover:text-accent-800 dark:text-slate-400 dark:hover:bg-accent-950/30 dark:hover:text-white'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
           </nav>
 
           <div className="flex items-center gap-2">
@@ -235,21 +276,48 @@ export default function ResidentLayout() {
         </div>
 
         {menuOpen && (
-          <nav className="space-y-1 border-t border-slate-200 px-4 py-3 dark:border-slate-800 lg:hidden">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                onClick={() => setMenuOpen(false)}
-                className={`block rounded-md px-3 py-2 text-sm font-semibold ${
-                  location.pathname === link.path
-                    ? 'bg-accent-700 text-white dark:bg-accent-600'
-                    : 'text-slate-500 hover:bg-accent-50 dark:text-slate-400 dark:hover:bg-accent-950/30'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <nav className="space-y-3 border-t border-slate-200 px-4 py-4 dark:border-slate-800 lg:hidden">
+            {navItems.map((item) => {
+              if (item.items) {
+                return (
+                  <div key={item.label} className="space-y-1">
+                    <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      {item.label}
+                    </p>
+                    <div className="space-y-0.5 pl-2">
+                      {item.items.map((subItem) => (
+                        <Link
+                          key={subItem.path}
+                          to={subItem.path}
+                          onClick={() => setMenuOpen(false)}
+                          className={`block rounded-md px-3 py-2 text-sm font-semibold ${
+                            location.pathname === subItem.path
+                              ? 'bg-accent-700 text-white dark:bg-accent-600'
+                              : 'text-slate-500 hover:bg-accent-50 dark:text-slate-400 dark:hover:bg-accent-950/30'
+                          }`}
+                        >
+                          {subItem.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )
+              }
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMenuOpen(false)}
+                  className={`block rounded-md px-3 py-2 text-sm font-semibold ${
+                    location.pathname === item.path
+                      ? 'bg-accent-700 text-white dark:bg-accent-600'
+                      : 'text-slate-500 hover:bg-accent-50 dark:text-slate-400 dark:hover:bg-accent-950/30'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
           </nav>
         )}
       </header>

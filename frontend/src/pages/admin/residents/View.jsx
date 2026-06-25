@@ -59,6 +59,10 @@ export default function ResidentProfile() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [archiveLoading, setArchiveLoading] = useState(false)
 
+  // Digital ID Confirm State
+  const [idConfirmOpen, setIdConfirmOpen] = useState(false)
+  const [idIssueLoading, setIdIssueLoading] = useState(false)
+
   useEffect(() => {
     setPageTitle('Resident Profile')
     fetchResidentById(id)
@@ -197,6 +201,22 @@ export default function ResidentProfile() {
       showNotifError(err.message || 'An error occurred.')
     } finally {
       setArchiveLoading(false)
+    }
+  }
+
+  const handleIssueDigitalId = async () => {
+    setIdIssueLoading(true)
+    try {
+      const res = await api.post('/digital-id/generate.php', { resident_id: currentResident.id })
+      if (res.data.success) {
+        success('Digital ID generated successfully!')
+        fetchResidentById(currentResident.id)
+      }
+    } catch (err) {
+      showNotifError(err.response?.data?.message || 'Failed to generate Digital ID')
+    } finally {
+      setIdIssueLoading(false)
+      setIdConfirmOpen(false)
     }
   }
 
@@ -612,6 +632,56 @@ export default function ResidentProfile() {
                       </p>
                     )}
                   </div>
+
+                  <hr className="border-slate-100 dark:border-slate-700" />
+
+                  {/* Digital Barangay ID */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Digital Barangay ID</h3>
+                    {currentResident.barangay_id_no ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-slate-400 dark:text-slate-500 mb-0.5">Barangay ID Number</p>
+                          <p className="font-semibold text-slate-800 dark:text-slate-200">{currentResident.barangay_id_no}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 dark:text-slate-500 mb-0.5">ID Validity Period</p>
+                          <p className="font-semibold text-slate-800 dark:text-slate-200">
+                            {currentResident.digital_id_issued_at} – {currentResident.digital_id_expires_at}
+                          </p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <p className="text-slate-400 dark:text-slate-500 mb-0.5">Security Signature Hash</p>
+                          <p className="font-mono text-xs break-all text-slate-700 dark:text-slate-300">{currentResident.digital_id_secure_hash}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-50 dark:bg-slate-800/40 p-4 rounded-md border border-slate-100 dark:border-slate-800 gap-4">
+                        <div>
+                          <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                            Digital ID Not Issued
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {currentResident.digital_id_status === 'requested' ? (
+                              <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                Resident has requested a Digital Barangay ID.
+                              </span>
+                            ) : (
+                              'Digital ID card has not been requested or issued to this resident yet.'
+                            )}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setIdConfirmOpen(true)}
+                          className={`btn btn-sm ${currentResident.digital_id_status === 'requested' ? 'btn-primary' : 'btn-secondary'}`}
+                        >
+                          {currentResident.digital_id_status === 'requested' ? 'Approve & Issue ID' : 'Issue Digital ID'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -723,6 +793,18 @@ export default function ResidentProfile() {
         confirmText={currentResident.is_archived ? 'Restore' : 'Archive'}
         variant={currentResident.is_archived ? 'primary' : 'danger'}
         loading={archiveLoading}
+      />
+
+      {/* Confirm Digital ID Issue Dialog */}
+      <ConfirmDialog
+        isOpen={idConfirmOpen}
+        onClose={() => setIdConfirmOpen(false)}
+        onConfirm={handleIssueDigitalId}
+        title="Issue Digital Barangay ID"
+        message={`Are you sure you want to generate and issue a Digital Barangay ID for ${currentResident?.first_name} ${currentResident?.last_name}? Once issued, this virtual ID will be immediately active for verification checkpoint scans.`}
+        confirmText="Issue ID Card"
+        variant="primary"
+        loading={idIssueLoading}
       />
     </div>
   )
