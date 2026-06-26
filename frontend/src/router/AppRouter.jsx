@@ -31,7 +31,6 @@ const DocumentRequestDetail = lazy(() => import('../pages/admin/requests/View'))
 // Phase 9 — Clinic & Digital ID
 const ClinicDashboard = lazy(() => import('../pages/admin/clinic/Dashboard'))
 const AppointmentsManager = lazy(() => import('../pages/admin/clinic/Appointments'))
-const IDScanner = lazy(() => import('../pages/admin/digital-id/Scanner'))
 
 // Resident pages
 const ResidentDashboard = lazy(() => import('../pages/resident/Dashboard'))
@@ -242,7 +241,6 @@ const router = createBrowserRouter([
       // Phase 9 — Clinic & Digital ID
       { path: '/admin/clinic/schedules', element: <LazyPage><ClinicDashboard /></LazyPage> },
       { path: '/admin/clinic/bookings', element: <LazyPage><AppointmentsManager /></LazyPage> },
-      { path: '/admin/digital-id/scanner', element: <LazyPage><IDScanner /></LazyPage> },
     ],
   },
 

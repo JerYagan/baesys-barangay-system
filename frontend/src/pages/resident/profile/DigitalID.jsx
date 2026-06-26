@@ -151,42 +151,66 @@ export default function DigitalID() {
               </div>
             </div>
 
-            {/* BACK SIDE */}
+            {/* BACK SIDE (Generic Barangay ID Design) */}
             <div className="relative w-80 h-[480px] rounded-2xl bg-white border-2 border-accent-600 shadow-xl p-5 flex flex-col justify-between dark:bg-slate-900 dark:border-accent-500">
-              <div className="border-b border-slate-100 dark:border-slate-800 pb-2">
-                <span className="text-[10px] font-bold text-accent-700 dark:text-accent-400 uppercase tracking-wider block">ID Security & Verification</span>
+              <div className="border-b border-slate-100 dark:border-slate-800 pb-2 text-center">
+                <span className="text-xs font-black text-accent-700 dark:text-accent-400 uppercase tracking-wider block">Terms & Verification</span>
               </div>
 
-              {/* QR and Verification info */}
-              <div className="flex flex-col items-center my-4 space-y-4">
-                <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-inner">
-                  {digitalId.qr_code_url ? (
-                    <img src={digitalId.qr_code_url} alt="Verification QR Code" className="w-36 h-36" />
-                  ) : (
-                    <div className="w-36 h-36 flex items-center justify-center text-xs text-slate-400">Loading QR...</div>
-                  )}
-                </div>
-                <p className="text-[9px] text-slate-400 text-center leading-relaxed max-w-[200px]">
-                  Scan this QR code at any Barangay checkpoint or public aid desk to verify the validity of this pass.
+              {/* Certification Statement */}
+              <div className="text-center my-2">
+                <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed font-semibold">
+                  This certifies that the bearer whose name, photo, and signature appear on this card is a registered resident of Barangay Baesa, Quezon City.
                 </p>
               </div>
 
+              {/* QR and Verification info */}
+              <div className="flex flex-col items-center space-y-2">
+                <div className="p-2 bg-white rounded-xl border border-slate-100 shadow-inner">
+                  {digitalId.qr_code_url ? (
+                    <img src={digitalId.qr_code_url} alt="Verification QR Code" className="w-24 h-24" />
+                  ) : (
+                    <div className="w-24 h-24 flex items-center justify-center text-xs text-slate-400">Loading QR...</div>
+                  )}
+                </div>
+                <p className="text-[8px] text-slate-400 text-center leading-normal max-w-[200px]">
+                  Scan this QR code to verify ID authenticity.
+                </p>
+              </div>
+
+              {/* Signatures Panel */}
+              <div className="grid grid-cols-2 gap-4 text-center my-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                <div className="flex flex-col justify-end min-h-[48px]">
+                  <div className="border-b border-slate-400 dark:border-slate-600 mx-2"></div>
+                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">Resident Signature</span>
+                </div>
+                <div className="flex flex-col justify-end min-h-[48px]">
+                  <span className="text-[9px] font-black text-slate-800 dark:text-slate-200 leading-none">HON. JOSE A. PEREZ</span>
+                  <span className="text-[7px] text-slate-400 uppercase tracking-wider leading-none mt-0.5">Barangay Captain</span>
+                  <div className="border-b border-slate-400 dark:border-slate-600 mx-2 mt-1"></div>
+                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">Authorized Officer</span>
+                </div>
+              </div>
+
               {/* Security details list */}
-              <div className="border-t border-slate-100 dark:border-slate-800 pt-3 text-xs space-y-2">
-                <div className="flex justify-between items-center text-[10px]">
+              <div className="border-t border-slate-100 dark:border-slate-800 pt-2 text-xs space-y-1">
+                <div className="flex justify-between items-center text-[9px]">
                   <span className="text-slate-400 block uppercase">Issued Date</span>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">{formatDate(digitalId.digital_id_issued_at)}</span>
                 </div>
-
-                <div className="flex flex-col text-[8px] text-slate-400 leading-none">
-                  <span className="uppercase">Verification Signature Hash</span>
-                  <span className="font-mono mt-1 break-all select-all">{digitalId.digital_id_secure_hash}</span>
+                <div className="flex justify-between items-center text-[9px]">
+                  <span className="text-slate-400 block uppercase">Emergency Contact</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">7-3393-122</span>
+                </div>
+                <div className="flex flex-col text-[7px] text-slate-400 leading-none pt-1">
+                  <span className="uppercase">Secure Signature Hash</span>
+                  <span className="font-mono mt-0.5 break-all select-all">{digitalId.digital_id_secure_hash}</span>
                 </div>
               </div>
 
               {/* Footer disclaimer */}
-              <div className="text-[8px] text-slate-400 text-center italic border-t border-slate-100 dark:border-slate-800 pt-2 leading-tight">
-                This card is property of Brgy. Baesa. Tampering with this pass is punishable by city ordinances.
+              <div className="text-[8px] text-slate-400 text-center italic border-t border-slate-100 dark:border-slate-800 pt-1.5 leading-tight">
+                If found, please return to: Barangay Hall, 22 Saklolo St., Manotoc Subd., Brgy. Baesa, QC.
               </div>
             </div>
 
